@@ -49,3 +49,25 @@ jobs:
           else
             exit 1
           fi
+
+  format:
+    name: "Check format"
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js (via input)
+        if: ${{ inputs.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
+
+      - name: Check format
+        run: pnpm run format
