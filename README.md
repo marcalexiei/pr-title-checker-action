@@ -2,7 +2,6 @@
 
 ##  TODOs
 
-- [ ] Add tests
-- [ ] Create playground to test it
+- [ ] Create repository playground to test it
 - [ ] Proper repo setup
 - [ ] Write README documentation

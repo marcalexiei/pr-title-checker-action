@@ -9,8 +9,10 @@ on:
       - main
 
 jobs:
-  test_success:
+  test_valid:
+    name: Test valid messages
     runs-on: "ubuntu-latest"
+    timeout-minutes: 5
 
     steps:
       - name: Checkout
@@ -20,3 +22,29 @@ jobs:
         uses: "./"
         with:
           title: "feat: testing funny things"
+          fail-on-error: true
+
+  test_invalid:
+    name: Test invalid messages
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: "Message should not be successful"
+        id: invalid_message
+        uses: "./"
+        with:
+          title: "invalid title"
+
+      # check that the action errors when invalid message is provided
+      - name: Check for failure
+        run: |
+          echo $FAILURE
+          if [ "${{ steps.invalid_message.outputs.valid }}" = "false" ]; then
+            exit 0
+          else
+            exit 1
+          fi
