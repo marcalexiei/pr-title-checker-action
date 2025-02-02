@@ -1,0 +1,52 @@
+name: PR title checker
+description: "Composite action to run check on commit"
+
+inputs:
+  title:
+    required: true
+    description: The title to validate
+
+runs:
+  using: composite
+  steps:
+    - name: Check type
+      id: type
+      shell: bash
+      run: |
+        VALID_COMMIT_TYPES="chore|ci|docs|feat|fix|refactor|test"
+        REGEX="^(${VALID_COMMIT_TYPES})(\(.*\))?!?: .*"
+
+        if ! [[ $INPUT_TITLE =~ $REGEX ]]; then
+          echo "::error title=Type::The title has an incorrect type. Valid types are ${VALID_COMMIT_TYPES}"
+          echo "result=fail" >> "$GITHUB_OUTPUT"
+        else
+          echo "::notice title=Type::The title is using a valid type"
+          echo "result=ok" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Check length
+      id: length
+      shell: bash
+      run: |
+        MAX_LENGTH=100
+        LENGTH=${#INPUT_TITLE}
+
+        if [ $LENGTH -gt $MAX_LENGTH ]; then
+          echo "::error title=Length::The title is longer than $MAX_LENGTH characters"
+          echo "result=fail" >> "$GITHUB_OUTPUT"
+        else
+          echo "::notice title=Length::The title length is within the maximum value of $MAX_LENGTH characters"
+          echo "result=ok" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Emit result
+      shell: bash
+      env:
+        FAILURE: ${{ contains(join(steps.*.outputs.result, ','), 'fail') }}
+      run: |
+        echo "Failure: $FAILURE"
+        if [ "$FAILURE" = "false" ]; then
+          exit 0
+        else
+          exit 1
+        fi
