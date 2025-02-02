@@ -1,0 +1,32 @@
+name: "Manual test"
+
+on:
+  workflow_dispatch:
+    inputs:
+      title:
+        required: true
+        description: The title to validate
+      fail-on-error:
+        required: false
+        description: "Fail on error"
+
+jobs:
+  run:
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: "Run action"
+        if: ${{ !inputs.fail-on-error }}
+        uses: "./"
+        with:
+          title: ${{ inputs.title }}
+
+      - name: "Run action with fail-on-error"
+        if: ${{ inputs.fail-on-error }}
+        uses: "./"
+        with:
+          title: ${{ inputs.title }}
+          fail-on-error: true

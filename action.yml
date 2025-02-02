@@ -5,6 +5,14 @@ inputs:
   title:
     required: true
     description: The title to validate
+  fail-on-error:
+    required: false
+    description: "Fail"
+
+outputs:
+  valid:
+    description: "If the check is passed or not"
+    value: ${{ steps.result.outputs.valid }}
 
 runs:
   using: composite
@@ -12,6 +20,8 @@ runs:
     - name: Check type
       id: type
       shell: bash
+      env:
+        INPUT_TITLE: ${{ inputs.title }}
       run: |
         VALID_COMMIT_TYPES="chore|ci|docs|feat|fix|refactor|test"
         REGEX="^(${VALID_COMMIT_TYPES})(\(.*\))?!?: .*"
@@ -27,6 +37,8 @@ runs:
     - name: Check length
       id: length
       shell: bash
+      env:
+        INPUT_TITLE: ${{ inputs.title }}
       run: |
         MAX_LENGTH=100
         LENGTH=${#INPUT_TITLE}
@@ -40,12 +52,23 @@ runs:
         fi
 
     - name: Emit result
+      id: result
       shell: bash
       env:
         FAILURE: ${{ contains(join(steps.*.outputs.result, ','), 'fail') }}
       run: |
         echo "Failure: $FAILURE"
         if [ "$FAILURE" = "false" ]; then
+          echo "valid=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "valid=false" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: fail-on-error enabled
+      if: ${{ inputs.fail-on-error }}
+      shell: bash
+      run: |
+        if [ "${{ steps.result.outputs.valid }}" = "true" ]; then
           exit 0
         else
           exit 1
