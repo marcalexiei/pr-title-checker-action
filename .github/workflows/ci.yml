@@ -22,7 +22,6 @@ jobs:
         uses: "./"
         with:
           title: "feat: testing funny things"
-          fail-on-error: true
 
   test_invalid:
     name: Test invalid messages
@@ -33,17 +32,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # check that the action outputs `valid` set to `false` when invalid message is provided
       - name: "Message should not be successful"
         id: invalid_message
         uses: "./"
         with:
           title: "invalid title"
+          fail-on-error: false
 
-      # check that the action errors when invalid message is provided
-      - name: Check for failure
+      - name: Check for action output
         run: |
           echo $FAILURE
           if [ "${{ steps.invalid_message.outputs.valid }}" = "false" ]; then
+            echo "Action doesn't output `valid=false`"
             exit 0
           else
             exit 1
